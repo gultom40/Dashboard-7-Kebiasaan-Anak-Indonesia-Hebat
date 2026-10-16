@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analisis 7 Kebiasaan Anak Indonesia Hebat</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .tab-btn.active {
+            background-color: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-gradient-to-r from-indigo-800 via-indigo-700 to-blue-700 text-white shadow-xl sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-white/10 rounded-xl backdrop-blur-md border border-white/20">
+                    <i data-lucide="award" class="w-7 h-7 text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">7 Kebiasaan Anak Indonesia Hebat</h1>
+                    <p class="text-xs text-indigo-200">Sistem Pemantauan, Instrumen Penilaian & Diagnosis Karakter 100 Siswa</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="resetTo100StudentsData()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-xs font-medium border border-white/20 transition-all">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Reset 100 Data Anak</span>
+                </button>
+                <button onclick="openModal('addModal')" class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium text-xs transition-all shadow-md active:scale-95">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>Tambah Siswa</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-indigo-600/50 pt-2 pb-3 overflow-x-auto">
+            <div class="flex space-x-2 min-w-max">
+                <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="tab-btn active px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Dashboard Utama</span>
+                </button>
+                <button onclick="switchTab('instruments')" id="tabBtn-instruments" class="tab-btn text-indigo-100 hover:bg-white/10 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="book-open-check" class="w-4 h-4"></i>
+                    <span>Instrumen & Rubrik Penilaian</span>
+                </button>
+                <button onclick="switchTab('matrix')" id="tabBtn-matrix" class="tab-btn text-indigo-100 hover:bg-white/10 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="scale" class="w-4 h-4"></i>
+                    <span>Matriks & Skala Evaluasi</span>
+                </button>
+                <button onclick="switchTab('students')" id="tabBtn-students" class="tab-btn text-indigo-100 hover:bg-white/10 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Data 100 Anak (<span id="tabStudentCount">100</span>)</span>
+                </button>
+                <button onclick="switchTab('generator')" id="tabBtn-generator" class="tab-btn text-indigo-100 hover:bg-white/10 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>Generator Evaluasi AI</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+        <!-- TAB 1: DASHBOARD UTAMA -->
+        <div id="view-dashboard" class="tab-content space-y-8">
+            <!-- Top Stat KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Sampel Anak</p>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-1" id="statTotalStudents">100</h3>
+                        <p class="text-xs text-emerald-600 mt-1 flex items-center gap-1 font-medium">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 100% Terverifikasi
+                        </p>
+                    </div>
+                    <div class="p-3.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rata-Rata Skor Nasional</p>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-1" id="statAvgScore">3.88 <span class="text-xs font-normal text-slate-400">/ 5.00</span></h3>
+                        <span id="statAvgBadge" class="inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Kategori: Baik</span>
+                    </div>
+                    <div class="p-3.5 bg-blue-50 text-blue-600 rounded-xl">
+                        <i data-lucide="activity" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kebiasaan Tertinggi</p>
+                        <h3 class="text-base font-bold text-slate-800 mt-1 truncate max-w-[150px]" id="statTopHabit">Istirahat Cukup</h3>
+                        <p class="text-xs text-indigo-600 mt-1 font-medium">Skor Rata-Rata: <span id="statTopHabitScore">4.12</span></p>
+                    </div>
+                    <div class="p-3.5 bg-amber-50 text-amber-600 rounded-xl">
+                        <i data-lucide="trophy" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Perlu Intervensi</p>
+                        <h3 class="text-base font-bold text-slate-800 mt-1 truncate max-w-[150px]" id="statFocusHabit">Berolahraga</h3>
+                        <p class="text-xs text-rose-500 mt-1 font-medium">Skor Rata-Rata: <span id="statFocusHabitScore">3.32</span></p>
+                    </div>
+                    <div class="p-3.5 bg-rose-50 text-rose-600 rounded-xl">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Radar Chart -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                <i data-lucide="radar" class="w-5 h-5 text-indigo-600"></i>
+                                Profil Radar 7 Kebiasaan
+                            </h2>
+                            <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Agregat 100 Anak</span>
+                        </div>
+                        <div class="relative w-full aspect-square max-h-[300px] mx-auto">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center mt-3 italic">Visualisasi keseimbangan pembiasaan karakter anak secara menyeluruh.</p>
+                </div>
+
+                <!-- Daily Trend Line Chart -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200/80 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                    <i data-lucide="trending-up" class="w-5 h-5 text-indigo-600"></i>
+                                    Tren Perkembangan Harian (Hari 1 - Hari 5)
+                                </h2>
+                                <p class="text-xs text-slate-500">Progresivitas peningkatan skor 7 kebiasaan selama 5 hari observasi</p>
+                            </div>
+                        </div>
+                        <div class="relative w-full h-[260px]">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2 pt-4 border-t border-slate-100 text-xs text-center">
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <span class="text-slate-500 block">Hari 1</span>
+                            <strong class="text-indigo-600" id="trendH1">3.75</strong>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <span class="text-slate-500 block">Hari 2</span>
+                            <strong class="text-indigo-600" id="trendH2">3.82</strong>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <span class="text-slate-500 block">Hari 3</span>
+                            <strong class="text-indigo-600" id="trendH3">3.89</strong>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <span class="text-slate-500 block">Hari 4</span>
+                            <strong class="text-indigo-600" id="trendH4">3.94</strong>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <span class="text-slate-500 block">Hari 5</span>
+                            <strong class="text-indigo-600" id="trendH5">4.01</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distribution & Bar Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Category Distribution Donut -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2 mb-4">
+                            <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-600"></i>
+                            Distribusi Kategori Capaian
+                        </h2>
+                        <div class="relative w-full aspect-square max-h-[250px] mx-auto">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                    <div id="categoryLegend" class="space-y-1.5 pt-4 text-xs">
+                        <!-- Legend added via JS -->
+                    </div>
+                </div>
+
+                <!-- Habit Comparison Bar Chart -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200/80 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2 mb-4">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-600"></i>
+                            Rata-Rata Capaian Per Indikator Kebiasaan (K1 - K7)
+                        </h2>
+                        <div class="relative w-full h-[260px]">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center pt-3 border-t border-slate-100">
+                        Skala penilaian berkisar dari 1.00 (Sangat Tidak Baik) hingga 5.00 (Sangat Baik)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: INSTRUMEN & RUBRIK PENILAIAN -->
+        <div id="view-instruments" class="tab-content hidden space-y-8">
+            <div class="glass-card p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200/80">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                    <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                        <i data-lucide="book-open-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Instrumen Deskriptor Rubrik Penilaian (7 Kebiasaan)</h2>
+                        <p class="text-xs text-slate-500">Panduan standar perilaku operasional untuk observasi penilaian anak skala 1 sampai 5</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6" id="rubricContainer">
+                    <!-- Rubric Cards for K1 to K7 populated dynamically or structured -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MATRIKS & SKALA EVALUASI -->
+        <div id="view-matrix" class="tab-content hidden space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Matrix Standard Card -->
+                <div class="glass-card p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200/80 space-y-6">
+                    <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <i data-lucide="scale" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Matriks & Interval Kategori Capaian</h2>
+                            <p class="text-xs text-slate-500">Formula penetapan interval penilaian skor rata-rata kebiasaan</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100 text-xs text-indigo-900 space-y-2">
+                        <p class="font-semibold">Formula Rumus Interval Kategori Likert:</p>
+                        <p class="font-mono bg-white p-2 rounded border border-indigo-200 text-center font-bold">
+                            Interval = (Skor Maksimal - Skor Minimal) / Jumlah Kategori = (5 - 1) / 5 = 0.80
+                        </p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 font-semibold text-slate-700 uppercase">
+                                    <th class="p-3 rounded-l-lg">Rentang Skor</th>
+                                    <th class="p-3">Kategori Capaian</th>
+                                    <th class="p-3 rounded-r-lg">Interpretasi Evaluasi Karakter</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="p-3 font-mono font-bold text-emerald-700">4.21 – 5.00</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">Sangat Baik</span></td>
+                                    <td class="p-3 text-slate-600">Kebiasaan sudah membudaya secara mandiri tanpa perlu diingatkan.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-mono font-bold text-blue-700">3.41 – 4.20</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800">Baik</span></td>
+                                    <td class="p-3 text-slate-600">Kebiasaan terlaksana konsisten dengan sedikit dorongan rutin.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-mono font-bold text-amber-700">2.61 – 3.40</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">Cukup</span></td>
+                                    <td class="p-3 text-slate-600">Kebiasaan masih fluktuatif, butuh pengawasan dan peringatan berulang.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-mono font-bold text-orange-700">1.81 – 2.60</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 rounded-full font-bold bg-orange-100 text-orange-800">Kurang Baik</span></td>
+                                    <td class="p-3 text-slate-600">Jarang melakukan kebiasaan, perlu pendampingan khusus.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-mono font-bold text-rose-700">1.00 – 1.80</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 rounded-full font-bold bg-rose-100 text-rose-800">Sangat Tidak Baik</span></td>
+                                    <td class="p-3 text-slate-600">Tidak pernah menjalankan kebiasaan, butuh intervensi intensif.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pedagogical Intervention Matrix -->
+                <div class="glass-card p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200/80 space-y-6">
+                    <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i data-lucide="compass" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Panduan Strategi Intervensi Pembiasaan</h2>
+                            <p class="text-xs text-slate-500">Rekomendasi tindakan pedagogis untuk guru dan orang tua</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="p-3.5 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <h4 class="font-bold text-emerald-900 mb-1">Strategi Kategori Sangat Baik / Baik:</h4>
+                            <p class="text-emerald-800">Berikan penguatan positif (positive reinforcement), jadikan anak sebagai Duta Kebiasaan/Role Model bagi teman sebaya, serta jaga konsistensi atmosfer lingkungan pendukung.</p>
+                        </div>
+                        <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-100">
+                            <h4 class="font-bold text-amber-900 mb-1">Strategi Kategori Cukup:</h4>
+                            <p class="text-amber-800">Terapkan kartu pemantauan harian (habit tracker checklist), berikan pengingat visual ceria di kamar/kelas, dan terapkan teknik apresiasi bertahap saat anak berhasil menuntaskan kebiasaan.</p>
+                        </div>
+                        <div class="p-3.5 bg-rose-50 rounded-xl border border-rose-100">
+                            <h4 class="font-bold text-rose-900 mb-1">Strategi Kategori Kurang Baik / Sangat Tidak Baik:</h4>
+                            <p class="text-rose-800">Lakukan diskusi konseling individual orang tua-guru-anak, kurangi hambatan psikologis/akses, dampingi aktivitas kebiasaan secara fisik secara bertahap (scaffolding behavioral approach).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: DATA 100 ANAK INDONESIA HEBAT -->
+        <div id="view-students" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-indigo-600"></i>
+                            Daftar Penilaian 100 Anak Indonesia Hebat
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi nilai rata-rata 7 kebiasaan dari 100 siswa selama 5 hari pemantauan</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <!-- Search Box -->
+                        <div class="relative flex-1 sm:w-60">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="searchInput" oninput="handleSearchFilter()" placeholder="Cari nama anak..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                        </div>
+
+                        <!-- Category Filter -->
+                        <select id="categoryFilter" onchange="handleSearchFilter()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="ALL">Semua Kategori</option>
+                            <option value="Sangat Baik">Sangat Baik (4.21-5.00)</option>
+                            <option value="Baik">Baik (3.41-4.20)</option>
+                            <option value="Cukup">Cukup (2.61-3.40)</option>
+                            <option value="Kurang Baik">Kurang Baik (1.81-2.60)</option>
+                            <option value="Sangat Tidak Baik">Sangat Tidak Baik (1.00-1.80)</option>
+                        </select>
+
+                        <!-- Sort Filter -->
+                        <select id="sortBy" onchange="handleSearchFilter()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="NAME_ASC">Nama (A-Z)</option>
+                            <option value="SCORE_DESC">Nilai Tertinggi</option>
+                            <option value="SCORE_ASC">Nilai Terendah</option>
+                        </select>
+
+                        <button onclick="exportCSV()" class="p-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs flex items-center gap-1.5 font-medium" title="Ekspor CSV">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/80 text-[11px] font-semibold text-slate-500 uppercase border-b border-slate-200/80">
+                                <th class="py-3 px-4">No</th>
+                                <th class="py-3 px-4">Nama Anak</th>
+                                <th class="py-3 px-2 text-center">K1. Bangun Pagi</th>
+                                <th class="py-3 px-2 text-center">K2. Beribadah</th>
+                                <th class="py-3 px-2 text-center">K3. Olahraga</th>
+                                <th class="py-3 px-2 text-center">K4. Gemar Belajar</th>
+                                <th class="py-3 px-2 text-center">K5. Makan Sehat</th>
+                                <th class="py-3 px-2 text-center">K6. Sosialisasi</th>
+                                <th class="py-3 px-2 text-center">K7. Istirahat</th>
+                                <th class="py-3 px-3 text-center">Rata-Rata</th>
+                                <th class="py-3 px-3 text-center">Kategori</th>
+                                <th class="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="divide-y divide-slate-100 text-xs">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="p-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+                    <div>
+                        Menampilkan <span id="paginationInfo" class="font-semibold text-slate-700">0-0 dari 100</span> anak
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changePage(-1)" id="btnPrevPage" class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40">Sebelumnya</button>
+                        <span id="pageNumberDisplay" class="font-bold text-slate-700 px-2">Halaman 1</span>
+                        <button onclick="changePage(1)" id="btnNextPage" class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40">Selanjutnya</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: GENERATOR EVALUASI AI -->
+        <div id="view-generator" class="tab-content hidden space-y-8">
+            <div class="glass-card p-6 sm:p-8 rounded-2xl shadow-sm border border-indigo-100 bg-gradient-to-br from-white via-indigo-50/20 to-slate-50">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-6 h-6 text-indigo-600"></i>
+                            Generator Diagnosis & Rapor Karakter Anak
+                        </h2>
+                        <p class="text-xs text-slate-600 mt-0.5">Pilih salah satu dari 100 anak untuk menghasilkan narasi diagnosis perkembangan karakter instan</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <select id="analysisStudentSelect" class="bg-white border border-slate-300 text-slate-700 text-xs rounded-lg px-3.5 py-2 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm min-w-[220px]">
+                            <!-- Options generated dynamically -->
+                        </select>
+                        <button onclick="runAIAnalysis()" id="btnRunAnalysis" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium text-xs transition-all shadow-md active:scale-95">
+                            <i data-lucide="cpu" class="w-4 h-4"></i>
+                            <span>Jalankan Diagnosis</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analysis Output Container -->
+                <div id="analysisContainer" class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm relative min-h-[200px]">
+                    <div id="analysisPlaceholder" class="flex flex-col items-center justify-center py-10 text-center text-slate-400">
+                        <i data-lucide="brain-circuit" class="w-12 h-12 mb-3 text-indigo-300"></i>
+                        <p class="font-medium text-slate-600 text-sm">Belum Ada Diagnosis yang Dijalankan</p>
+                        <p class="text-xs text-slate-400 max-w-sm mt-1">Pilih nama anak pada menu drop-down di atas dan klik tombol "Jalankan Diagnosis" untuk memproses narasi rekomendasi pedagogis.</p>
+                    </div>
+
+                    <div id="analysisLoading" class="hidden flex flex-col items-center justify-center py-12 text-center">
+                        <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                        <p class="font-semibold text-slate-700 text-sm">Menyintesis Profil 7 Kebiasaan Anak...</p>
+                        <p class="text-xs text-slate-400 mt-1">Menghitung matriks interval & menyusun rekomendasi tindakan guru-orang tua.</p>
+                    </div>
+
+                    <div id="analysisResult" class="hidden space-y-6">
+                        <div class="flex flex-wrap items-center justify-between pb-4 border-b border-slate-100 gap-2">
+                            <div>
+                                <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Hasil Diagnosis Pembiasaan Karakter</span>
+                                <h3 class="text-lg font-bold text-slate-800" id="resultStudentName">Nama Anak</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="resultScoreBadge" class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">Skor: 0.00</span>
+                                <button onclick="printStudentReport()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Cetak Kartu Laporan">
+                                    <i data-lucide="printer" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="p-4 bg-emerald-50/70 border border-emerald-100 rounded-xl">
+                                    <h4 class="font-semibold text-emerald-900 text-xs flex items-center gap-1.5 mb-2">
+                                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> Keunggulan Utama Kebiasaan
+                                    </h4>
+                                    <p class="text-xs text-emerald-800 leading-relaxed" id="resultStrengths">-</p>
+                                </div>
+                                <div class="p-4 bg-amber-50/70 border border-amber-100 rounded-xl">
+                                    <h4 class="font-semibold text-amber-900 text-xs flex items-center gap-1.5 mb-2">
+                                        <i data-lucide="compass" class="w-4 h-4 text-amber-600"></i> Area Perlu Penguatan
+                                    </h4>
+                                    <p class="text-xs text-amber-800 leading-relaxed" id="resultImprovement">-</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-xl">
+                                    <h4 class="font-semibold text-indigo-900 text-xs flex items-center gap-1.5 mb-2">
+                                        <i data-lucide="book-open" class="w-4 h-4 text-indigo-600"></i> Panduan Guru di Sekolah
+                                    </h4>
+                                    <p class="text-xs text-indigo-800 leading-relaxed" id="resultTeacherNote">-</p>
+                                </div>
+                                <div class="p-4 bg-blue-50/70 border border-blue-100 rounded-xl">
+                                    <h4 class="font-semibold text-blue-900 text-xs flex items-center gap-1.5 mb-2">
+                                        <i data-lucide="home" class="w-4 h-4 text-blue-600"></i> Panduan Kolaborasi Orang Tua
+                                    </h4>
+                                    <p class="text-xs text-blue-800 leading-relaxed" id="resultParentNote">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Student 5-Day Detail Drilldown Modal -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6 space-y-5 animate-in fade-in zoom-in duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base" id="detailModalName">Detail Rincian 5 Hari</h3>
+                    <p class="text-xs text-slate-500">Breakdown skor kebiasaan harian anak (Hari 1 s.d. Hari 5)</p>
+                </div>
+                <button onclick="closeModal('detailModal')" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 font-semibold text-slate-500 uppercase border-b border-slate-200">
+                            <th class="p-2.5">Kebiasaan</th>
+                            <th class="p-2.5 text-center">Hari 1</th>
+                            <th class="p-2.5 text-center">Hari 2</th>
+                            <th class="p-2.5 text-center">Hari 3</th>
+                            <th class="p-2.5 text-center">Hari 4</th>
+                            <th class="p-2.5 text-center">Hari 5</th>
+                            <th class="p-2.5 text-center">Rata-Rata</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailTableBody" class="divide-y divide-slate-100">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end border-t border-slate-100 pt-3">
+                <button onclick="closeModal('detailModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add / Edit Student Modal -->
+    <div id="addModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-5 animate-in fade-in zoom-in duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i data-lucide="user-plus" class="w-5 h-5 text-indigo-600"></i>
+                    <span id="modalTitle">Tambah Siswa Baru</span>
+                </h3>
+                <button onclick="closeModal('addModal')" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="studentForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="studentId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Lengkap Anak</label>
+                    <input type="text" id="inputName" required placeholder="Contoh: Ananda Pratama" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <div class="space-y-3 pt-2">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Skor Rata-Rata Kebiasaan (1.0 - 5.0)</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">K1. Bangun Pagi</label>
+                            <input type="number" id="h1" min="1" max="5" step="0.1" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">K2. Taat Beribadah</label>
+                            <input type="number" id="h2" min="1" max="5" step="0.1" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">K3. Berolahraga</label>
+                            <input type="number" id="h3" min="1" max="5" step="0.1" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">K4. Gemar Belajar</label>
+                            <input type="number" id="h4" min="1" max="5" step="0.1" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">K5. Makan Sehat</label>
+                            <input type="number" id="h5" min="1" max="5" step="0.1" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">K6. Bermasyarakat</label>
+                            <input type="number" id="h6" min="1" max="5" step="0.1" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-medium text-slate-700 mb-1">K7. Istirahat Cukup</label>
+                            <input type="number" id="h7" min="1" max="5" step="0.1" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('addModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-all shadow-md">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-xs">
+        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+        <span id="toastMessage">Pesan Notifikasi</span>
+    </div>
+
+    <script>
+        const HABITS = [
+            "K1. Bangun Pagi",
+            "K2. Beribadah",
+            "K3. Berolahraga",
+            "K4. Gemar Belajar",
+            "K5. Makan Sehat",
+            "K6. Bermasyarakat",
+            "K7. Istirahat Cukup"
+        ];
+
+        const RUBRICS_DATA = [
+            {
+                code: "K1",
+                title: "1. Bangun Pagi Tepat Waktu",
+                desc: "Kebiasaan bangun di pagi hari tepat waktu secara konsisten untuk merencanakan hari dengan positif.",
+                levels: {
+                    5: "Bangun sebelum subuh/05.00 WIB secara mandiri tanpa bantuan alarm/orang tua.",
+                    4: "Bangun jam 05.00-05.30 WIB dengan alarm sendiri secara konsisten.",
+                    3: "Bangun jam 05.30-06.00 WIB setelah dibangunkan sekali oleh orang tua.",
+                    2: "Bangun setelah dibangunkan berkali-kali dan sering terburu-buru.",
+                    1: "Sering bangun kesiangan (>06.30 WIB) dan terlambat beraktivitas."
+                }
+            },
+            {
+                code: "K2",
+                title: "2. Taat Beribadah & Bersyukur",
+                desc: "Menjalankan ibadah sesuai agama/kepercayaan dengan khusyuk dan rasa syukur.",
+                levels: {
+                    5: "Ibadah tepat waktu secara mandiri, melengkapi dengan doa dan toleransi tinggi.",
+                    4: "Menjalankan ibadah rutin harian dengan sedikit ingatan dari keluarga.",
+                    3: "Ibadah kadang perlu didorong/diingatkan oleh orang tua/guru.",
+                    2: "Ibadah hanya jika diminta atau dipaksa dengan rasa enggan.",
+                    1: "Tidak mau menjalankan ibadah harian."
+                }
+            },
+            {
+                code: "K3",
+                title: "3. Rutin Berolahraga & Aktivitas Fisik",
+                desc: "Melakukan pergerakan fisik atau olahraga secara teratur untuk menjaga kesegaran jasmani.",
+                levels: {
+                    5: "Berolahraga/aktif bergerak >30 menit setiap hari secara bersemangat.",
+                    4: "Berolahraga 3-4 kali seminggu secara teratur.",
+                    3: "Hanya berolahraga saat pelajaran PJOK atau kegiatan sekolah.",
+                    2: "Jarang beraktivitas fisik, cenderung pasif/sedentari.",
+                    1: "Sangat pasif, menolak pergerakan fisik dan lebih banyak berbaring."
+                }
+            },
+            {
+                code: "K4",
+                title: "4. Gemar Belajar & Membaca Buku",
+                desc: "Memiliki rasa ingin tahu tinggi, membaca literasi, dan menuntaskan tugas dengan sungguh-sungguh.",
+                levels: {
+                    5: "Membaca buku non-pelajaran >30 menit/hari, aktif eksplorasi hal baru.",
+                    4: "Mengerjakan tugas sekolah secara mandiri dan rajin membaca.",
+                    3: "Belajar jika ada ujian atau diminta oleh guru/orang tua.",
+                    2: "Belajar dengan malas-malasan dan menunda-nunda tugas.",
+                    1: "Menolak belajar dan tidak menuntaskan tugas sekolah."
+                }
+            },
+            {
+                code: "K5",
+                title: "5. Makan Sehat, Bergizi & Teratur",
+                desc: "Mengonsumsi makanan seimbang, minum air putih cukup, dan menghindari jajanan tak sehat.",
+                levels: {
+                    5: "Selalu makan sayur/buah, minum air cukup, dan paham gizi seimbang.",
+                    4: "Makan teratur dengan gizi seimbang serta membatasi jajanan sembarangan.",
+                    3: "Makan teratur namun masih suka memilah sayuran tertentu.",
+                    2: "Sering mengonsumsi fast food/jajanan manis berlebihan.",
+                    1: "Pola makan sangat tidak teratur dan menolak makan sehat."
+                }
+            },
+            {
+                code: "K6",
+                title: "6. Bermasyarakat, Empati & Gotong Royong",
+                desc: "Menunjukkan sikap sopan santun, bekerja sama, peduli sesama, dan berinteraksi sosial secara sehat.",
+                levels: {
+                    5: "Sangat ramah, aktif membantu teman, sopan, dan memimpin gotong royong.",
+                    4: "Dapat bekerja sama dengan baik dan menghormati sesama.",
+                    3: "Bersosialisasi dengan kawan dekat saja, kadang acuh tak acuh.",
+                    2: "Sering berselisih paham atau bersikap apatis terhadap teman.",
+                    1: "Menunjukkan perilaku merusak, perundungan, atau mengisolasi diri."
+                }
+            },
+            {
+                code: "K7",
+                title: "7. Istirahat Cukup & Tidur Tepat Waktu",
+                desc: "Mengatur waktu tidur di malam hari secara teratur (8-9 jam) untuk pemulihan energi optimal.",
+                levels: {
+                    5: "Tidur malam sebelum pukul 21.00 WIB tanpa bergantung pada gadget.",
+                    4: "Tidur malam pukul 21.00-21.30 WIB dengan teratur.",
+                    3: "Tidur pukul 22.00 WIB dan sesekali menggunakan gadget sebelum tidur.",
+                    2: "Sering begadang hingga larut malam (>22.30 WIB) karena main game/HP.",
+                    1: "Sangat sering begadang dan mengalami gangguan kualitas tidur berat."
+                }
+            }
+        ];
+
+        // 100 Indonesian Students Dataset Generator
+        const FIRST_NAMES = [
+            "Ahmad", "Ananda", "Bintang", "Bayu", "Cantika", "Citra", "Dion", "Dewi", "Eko", "Erlangga",
+            "Fikri", "Farah", "Gilang", "Gita", "Hafiz", "Hani", "Irfan", "Indah", "Joko", "Jasmine",
+            "Kiki", "Kania", "Luthfi", "Laras", "Mulia", "Maya", "Naufal", "Nadia", "Oki", "Olvia",
+            "Pratama", "Putri", "Qori", "Rizky", "Rania", "Surya", "Siti", "Tegar", "Tari", "Utama",
+            "Vina", "Wahyu", "Wulan", "Xavier", "Yusuf", "Yulia", "Zaki", "Zahra", "Aditya", "Ayu"
+        ];
+        const LAST_NAMES = [
+            "Pratama", "Saputra", "Wibowo", "Kusuma", "Hidayat", "Lestari", "Nugroho", "Utami", "Firmansyah", "Rahmadani",
+            "Suryani", "Ramadhan", "Kurniawan", "Sanjaya", "Permana", "Mahendra", "Pertiwi", "Handayani", "Setiawan", "Ginting"
+        ];
+
+        let students = [];
+        let currentPage = 1;
+        const pageSize = 10;
+
+        let radarChartInstance = null;
+        let trendChartInstance = null;
+        let distributionChartInstance = null;
+        let barChartInstance = null;
+
+        function generate100Students() {
+            const list = [];
+            let nameCount = 0;
+
+            for (let i = 1; i <= 100; i++) {
+                const fname = FIRST_NAMES[(i - 1) % FIRST_NAMES.length];
+                const lname = LAST_NAMES[Math.floor((i - 1) / 5) % LAST_NAMES.length];
+                const fullName = `${fname} ${lname} ${i > 50 ? 'N.' : ''}`.trim();
+
+                // Seeded realistic variation
+                const seed = (i * 17) % 100;
+                let baseAvg = 3.2 + (seed / 100) * 1.6; // Spread between 3.2 and 4.8
+
+                // Generate 5 days of scores for 7 habits
+                const dailyScores = [];
+                for (let d = 0; d < 5; d++) {
+                    const habitRow = [];
+                    for (let h = 0; h < 7; h++) {
+                        let val = baseAvg + (Math.sin(i + d + h) * 0.4) + (d * 0.05);
+                        val = Math.max(1.5, Math.min(5.0, val));
+                        habitRow.push(Number(val.toFixed(1)));
+                    }
+                    dailyScores.push(habitRow);
+                }
+
+                // Average habit scores over 5 days
+                const scores = [];
+                for (let h = 0; h < 7; h++) {
+                    let sum = 0;
+                    for (let d = 0; d < 5; d++) sum += dailyScores[d][h];
+                    scores.push(Number((sum / 5).toFixed(1)));
+                }
+
+                list.push({
+                    id: i.toString(),
+                    name: fullName,
+                    scores,
+                    dailyScores
+                });
+            }
+            return list;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            renderRubrics();
+            initCharts();
+            updateDashboardView();
+            lucide.createIcons();
+        });
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('anak_hebat_100_data');
+                if (saved) {
+                    students = JSON.parse(saved);
+                } else {
+                    students = generate100Students();
+                    saveData();
+                }
+            } catch (e) {
+                students = generate100Students();
+            }
+            document.getElementById('tabStudentCount').textContent = students.length;
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('anak_hebat_100_data', JSON.stringify(students));
+            } catch (e) {}
+        }
+
+        function resetTo100StudentsData() {
+            students = generate100Students();
+            saveData();
+            updateDashboardView();
+            showToast("100 Data Anak Indonesia Hebat berhasil dipulihkan!");
+        }
+
+        function switchTab(tabKey) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+                btn.classList.add('text-indigo-100', 'hover:bg-white/10');
+            });
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            const activeBtn = document.getElementById(`tabBtn-${tabKey}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+
+            const activeView = document.getElementById(`view-${tabKey}`);
+            if (activeView) {
+                activeView.classList.remove('hidden');
+            }
+
+            if (tabKey === 'dashboard') {
+                updateDashboardView();
+            } else if (tabKey === 'students') {
+                renderStudentTable();
+            } else if (tabKey === 'generator') {
+                populateGeneratorOptions();
+            }
+        }
+
+        function getCategory(avg) {
+            if (avg >= 4.21) return { label: "Sangat Baik", class: "bg-emerald-100 text-emerald-800" };
+            if (avg >= 3.41) return { label: "Baik", class: "bg-blue-100 text-blue-800" };
+            if (avg >= 2.61) return { label: "Cukup", class: "bg-amber-100 text-amber-800" };
+            if (avg >= 1.81) return { label: "Kurang Baik", class: "bg-orange-100 text-orange-800" };
+            return { label: "Sangat Tidak Baik", class: "bg-rose-100 text-rose-800" };
+        }
+
+        function calculateAggregates() {
+            if (students.length === 0) return null;
+
+            const habitTotals = [0, 0, 0, 0, 0, 0, 0];
+            const dailyTotals = [0, 0, 0, 0, 0];
+            const categoryCounts = { "Sangat Baik": 0, "Baik": 0, "Cukup": 0, "Kurang Baik": 0, "Sangat Tidak Baik": 0 };
+
+            students.forEach(s => {
+                const sAvg = s.scores.reduce((a, b) => a + b, 0) / 7;
+                const cat = getCategory(sAvg).label;
+                categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+
+                s.scores.forEach((sc, idx) => habitTotals[idx] += sc);
+
+                if (s.dailyScores) {
+                    for (let d = 0; d < 5; d++) {
+                        const dSum = s.dailyScores[d].reduce((a, b) => a + b, 0) / 7;
+                        dailyTotals[d] += dSum;
+                    }
+                }
+            });
+
+            const habitAvgs = habitTotals.map(t => Number((t / students.length).toFixed(2)));
+            const dailyAvgs = dailyTotals.map(t => Number((t / students.length).toFixed(2)));
+            const overallAvg = Number((habitAvgs.reduce((a, b) => a + b, 0) / 7).toFixed(2));
+
+            let maxIdx = 0, minIdx = 0;
+            habitAvgs.forEach((v, i) => {
+                if (v > habitAvgs[maxIdx]) maxIdx = i;
+                if (v < habitAvgs[minIdx]) minIdx = i;
+            });
+
+            return {
+                total: students.length,
+                overallAvg,
+                topHabit: HABITS[maxIdx].replace(/^K\d+\.\s*/, ''),
+                topHabitScore: habitAvgs[maxIdx],
+                focusHabit: HABITS[minIdx].replace(/^K\d+\.\s*/, ''),
+                focusHabitScore: habitAvgs[minIdx],
+                habitAvgs,
+                dailyAvgs,
+                categoryCounts
+            };
+        }
+
+        function updateDashboardView() {
+            const data = calculateAggregates();
+            if (!data) return;
+
+            document.getElementById('statTotalStudents').textContent = data.total;
+            document.getElementById('statAvgScore').innerHTML = `${data.overallAvg} <span class="text-xs font-normal text-slate-400">/ 5.00</span>`;
+            
+            const catObj = getCategory(data.overallAvg);
+            const badgeEl = document.getElementById('statAvgBadge');
+            badgeEl.textContent = `Kategori: ${catObj.label}`;
+            badgeEl.className = `inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full ${catObj.class}`;
+
+            document.getElementById('statTopHabit').textContent = data.topHabit;
+            document.getElementById('statTopHabitScore').textContent = data.topHabitScore;
+            document.getElementById('statFocusHabit').textContent = data.focusHabit;
+            document.getElementById('statFocusHabitScore').textContent = data.focusHabitScore;
+
+            // Trend Labels
+            document.getElementById('trendH1').textContent = data.dailyAvgs[0];
+            document.getElementById('trendH2').textContent = data.dailyAvgs[1];
+            document.getElementById('trendH3').textContent = data.dailyAvgs[2];
+            document.getElementById('trendH4').textContent = data.dailyAvgs[3];
+            document.getElementById('trendH5').textContent = data.dailyAvgs[4];
+
+            // Update Charts
+            if (radarChartInstance) {
+                radarChartInstance.data.datasets[0].data = data.habitAvgs;
+                radarChartInstance.update();
+            }
+
+            if (trendChartInstance) {
+                trendChartInstance.data.datasets[0].data = data.dailyAvgs;
+                trendChartInstance.update();
+            }
+
+            if (distributionChartInstance) {
+                distributionChartInstance.data.datasets[0].data = [
+                    data.categoryCounts["Sangat Baik"],
+                    data.categoryCounts["Baik"],
+                    data.categoryCounts["Cukup"],
+                    data.categoryCounts["Kurang Baik"],
+                    data.categoryCounts["Sangat Tidak Baik"]
+                ];
+                distributionChartInstance.update();
+            }
+
+            if (barChartInstance) {
+                barChartInstance.data.datasets[0].data = data.habitAvgs;
+                barChartInstance.update();
+            }
+
+            // Category Legend
+            const leg = document.getElementById('categoryLegend');
+            leg.innerHTML = `
+                <div class="flex justify-between items-center text-slate-600"><span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Sangat Baik</span> <strong>${data.categoryCounts["Sangat Baik"]} Anak</strong></div>
+                <div class="flex justify-between items-center text-slate-600"><span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Baik</span> <strong>${data.categoryCounts["Baik"]} Anak</strong></div>
+                <div class="flex justify-between items-center text-slate-600"><span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Cukup</span> <strong>${data.categoryCounts["Cukup"]} Anak</strong></div>
+                <div class="flex justify-between items-center text-slate-600"><span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Kurang Baik</span> <strong>${data.categoryCounts["Kurang Baik"]} Anak</strong></div>
+            `;
+        }
+
+        function initCharts() {
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ["K1. Pagi", "K2. Ibadah", "K3. Olahraga", "K4. Belajar", "K5. Makan", "K6. Sosial", "K7. Istirahat"],
+                    datasets: [{
+                        label: 'Skor Rata-Rata',
+                        data: [0,0,0,0,0,0,0],
+                        backgroundColor: 'rgba(79, 70, 229, 0.25)',
+                        borderColor: '#4f46e5',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#4f46e5'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: ['Hari 1', 'Hari 2', 'Hari 3', 'Hari 4', 'Hari 5'],
+                    datasets: [{
+                        label: 'Skor Rata-Rata Harian',
+                        data: [0, 0, 0, 0, 0],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#4f46e5'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { min: 1, max: 5 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const ctxDist = document.getElementById('distributionChart').getContext('2d');
+            distributionChartInstance = new Chart(ctxDist, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sangat Baik', 'Baik', 'Cukup', 'Kurang Baik', 'Sangat Tidak Baik'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ["K1. Bangun Pagi", "K2. Beribadah", "K3. Berolahraga", "K4. Gemar Belajar", "K5. Makan Sehat", "K6. Bermasyarakat", "K7. Istirahat Cukup"],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { min: 0, max: 5 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderRubrics() {
+            const container = document.getElementById('rubricContainer');
+            container.innerHTML = RUBRICS_DATA.map(r => `
+                <div class="border border-slate-200 rounded-xl p-5 hover:border-indigo-200 transition-all bg-white space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base text-indigo-700">${r.title}</h3>
+                        <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-mono text-xs font-bold">${r.code}</span>
+                    </div>
+                    <p class="text-xs text-slate-600">${r.desc}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs pt-2 border-t border-slate-100">
+                        <div class="p-2 bg-emerald-50 rounded"><span class="font-bold text-emerald-800">Skor 5</span><p class="text-slate-600 text-[11px] mt-0.5">${r.levels[5]}</p></div>
+                        <div class="p-2 bg-blue-50 rounded"><span class="font-bold text-blue-800">Skor 4</span><p class="text-slate-600 text-[11px] mt-0.5">${r.levels[4]}</p></div>
+                        <div class="p-2 bg-amber-50 rounded"><span class="font-bold text-amber-800">Skor 3</span><p class="text-slate-600 text-[11px] mt-0.5">${r.levels[3]}</p></div>
+                        <div class="p-2 bg-orange-50 rounded"><span class="font-bold text-orange-800">Skor 2</span><p class="text-slate-600 text-[11px] mt-0.5">${r.levels[2]}</p></div>
+                        <div class="p-2 bg-rose-50 rounded"><span class="font-bold text-rose-800">Skor 1</span><p class="text-slate-600 text-[11px] mt-0.5">${r.levels[1]}</p></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleSearchFilter() {
+            currentPage = 1;
+            renderStudentTable();
+        }
+
+        function renderStudentTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const catFilter = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = students.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(search);
+                const avg = s.scores.reduce((a, b) => a + b, 0) / 7;
+                const cat = getCategory(avg).label;
+                const matchCat = (catFilter === 'ALL' || cat === catFilter);
+                return matchSearch && matchCat;
+            });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                const avgA = a.scores.reduce((x, y) => x + y, 0) / 7;
+                const avgB = b.scores.reduce((x, y) => x + y, 0) / 7;
+                if (sortBy === 'NAME_ASC') return a.name.localeCompare(b.name);
+                if (sortBy === 'SCORE_DESC') return avgB - avgA;
+                if (sortBy === 'SCORE_ASC') return avgA - avgB;
+                return 0;
+            });
+
+            const total = filtered.length;
+            const totalPages = Math.ceil(total / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const pageData = filtered.slice(startIdx, startIdx + pageSize);
+
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-8 text-slate-400">Tidak ada data anak yang memenuhi kriteria filter.</td></tr>`;
+            } else {
+                pageData.forEach((s, idx) => {
+                    const avg = Number((s.scores.reduce((a, b) => a + b, 0) / 7).toFixed(2));
+                    const cat = getCategory(avg);
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50/80 transition-colors";
+
+                    const scoreBadges = s.scores.map(sc => `<td class="py-3 px-2 text-center font-mono">${sc}</td>`).join('');
+
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-mono text-slate-400">${startIdx + idx + 1}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(s.name)}</td>
+                        ${scoreBadges}
+                        <td class="py-3 px-3 text-center font-bold font-mono text-indigo-700">${avg.toFixed(2)}</td>
+                        <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${cat.class}">${cat.label}</span></td>
+                        <td class="py-3 px-4 text-right space-x-1">
+                            <button onclick="viewStudentDetail('${s.id}')" class="p-1 text-slate-500 hover:text-indigo-600 rounded" title="Detail 5 Hari"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                            <button onclick="editStudent('${s.id}')" class="p-1 text-slate-500 hover:text-blue-600 rounded" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="deleteStudent('${s.id}')" class="p-1 text-slate-500 hover:text-rose-600 rounded" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('paginationInfo').textContent = `${total > 0 ? startIdx + 1 : 0}-${Math.min(startIdx + pageSize, total)} dari ${total}`;
+            document.getElementById('pageNumberDisplay').textContent = `Halaman ${currentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+            document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+
+            lucide.createIcons();
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderStudentTable();
+        }
+
+        function viewStudentDetail(id) {
+            const s = students.find(x => x.id === id);
+            if (!s) return;
+
+            document.getElementById('detailModalName').textContent = `Detail Rincian Pembiasaan: ${s.name}`;
+            const tbody = document.getElementById('detailTableBody');
+            tbody.innerHTML = '';
+
+            HABITS.forEach((h, hIdx) => {
+                let dCells = '';
+                let sum = 0;
+                for (let d = 0; d < 5; d++) {
+                    const score = s.dailyScores ? s.dailyScores[d][hIdx] : s.scores[hIdx];
+                    sum += score;
+                    dCells += `<td class="p-2.5 text-center font-mono">${score}</td>`;
+                }
+                const avg = (sum / 5).toFixed(2);
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2.5 font-medium text-slate-700">${h}</td>
+                        ${dCells}
+                        <td class="p-2.5 text-center font-mono font-bold text-indigo-700">${avg}</td>
+                    </tr>
+                `;
+            });
+
+            openModal('detailModal');
+        }
+
+        function populateGeneratorOptions() {
+            const selectEl = document.getElementById('analysisStudentSelect');
+            selectEl.innerHTML = '';
+            students.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name} (Rata-Rata: ${(s.scores.reduce((a, b) => a + b, 0) / 7).toFixed(2)})`;
+                selectEl.appendChild(opt);
+            });
+        }
+
+        function runAIAnalysis() {
+            const studentId = document.getElementById('analysisStudentSelect').value;
+            if (!studentId) return;
+
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('analysisPlaceholder').classList.add('hidden');
+            document.getElementById('analysisResult').classList.add('hidden');
+            document.getElementById('analysisLoading').classList.remove('hidden');
+
+            setTimeout(() => {
+                const avg = (student.scores.reduce((a, b) => a + b, 0) / 7).toFixed(2);
+                let maxIdx = 0, minIdx = 0;
+                student.scores.forEach((v, i) => {
+                    if (v > student.scores[maxIdx]) maxIdx = i;
+                    if (v < student.scores[minIdx]) minIdx = i;
+                });
+
+                const topH = HABITS[maxIdx];
+                const lowH = HABITS[minIdx];
+
+                document.getElementById('resultStudentName').textContent = student.name;
+                document.getElementById('resultScoreBadge').textContent = `Rata-Rata: ${avg} / 5.00`;
+
+                document.getElementById('resultStrengths').textContent = 
+                    `${student.name} sangat unggul pada '${topH}' dengan skor ${student.scores[maxIdx]}. Perilaku positif ini membuktikan tingkat kemandirian dan motivasi internal yang tinggi.`;
+
+                document.getElementById('resultImprovement').textContent = 
+                    `Aspek '${lowH}' (Skor: ${student.scores[minIdx]}) menjadi area fokus pengembangan utama agar pembiasaan karakter berjalan seimbang.`;
+
+                document.getElementById('resultTeacherNote').textContent = 
+                    `Sediakan ruang apresiasi atas pencapaian ${topH}, serta terapkan habit tracker khusus di kelas untuk memantau kemajuan '${lowH}'.`;
+
+                document.getElementById('resultParentNote').textContent = 
+                    `Ciptakan iklim rumah yang kondusif dengan memberikan contoh keteladanan serta jadwal rutin keluarga untuk pembiasaan '${lowH}'.`;
+
+                document.getElementById('analysisLoading').classList.add('hidden');
+                document.getElementById('analysisResult').classList.remove('hidden');
+                showToast(`Diagnosis karakter ${student.name} selesai disintesis`);
+            }, 300);
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        }
+
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            document.getElementById('modalTitle').textContent = 'Edit Data Anak';
+            document.getElementById('studentId').value = student.id;
+            document.getElementById('inputName').value = student.name;
+
+            student.scores.forEach((val, i) => {
+                document.getElementById(`h${i + 1}`).value = val;
+            });
+
+            openModal('addModal');
+        }
+
+        function deleteStudent(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data anak ini dari sampel?')) {
+                students = students.filter(s => s.id !== id);
+                saveData();
+                document.getElementById('tabStudentCount').textContent = students.length;
+                renderStudentTable();
+                showToast('Data anak berhasil dihapus');
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('studentId').value;
+            const name = document.getElementById('inputName').value.trim();
+
+            const scores = [
+                parseFloat(document.getElementById('h1').value) || 0,
+                parseFloat(document.getElementById('h2').value) || 0,
+                parseFloat(document.getElementById('h3').value) || 0,
+                parseFloat(document.getElementById('h4').value) || 0,
+                parseFloat(document.getElementById('h5').value) || 0,
+                parseFloat(document.getElementById('h6').value) || 0,
+                parseFloat(document.getElementById('h7').value) || 0,
+            ];
+
+            if (id) {
+                const idx = students.findIndex(s => s.id === id);
+                if (idx !== -1) {
+                    students[idx].name = name;
+                    students[idx].scores = scores;
+                    showToast('Data anak berhasil diperbarui');
+                }
+            } else {
+                const newStudent = {
+                    id: Date.now().toString(),
+                    name,
+                    scores,
+                    dailyScores: Array(5).fill(scores)
+                };
+                students.push(newStudent);
+                showToast('Anak baru berhasil ditambahkan');
+            }
+
+            saveData();
+            document.getElementById('tabStudentCount').textContent = students.length;
+            renderStudentTable();
+            closeModal('addModal');
+        }
+
+        function exportCSV() {
+            if (students.length === 0) return;
+            let csv = "data:text/csv;charset=utf-8,No,Nama Anak," + HABITS.map(h => `"${h}"`).join(",") + ",Rata-Rata,Kategori\n";
+            students.forEach((s, i) => {
+                const avg = (s.scores.reduce((a, b) => a + b, 0) / 7).toFixed(2);
+                const cat = getCategory(avg).label;
+                csv += `${i + 1},"${s.name}",` + s.scores.join(",") + `,${avg},"${cat}"\n`;
+            });
+            const encodedUri = encodeURI(csv);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Analisis_100_Anak_Indonesia_Hebat_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('File CSV 100 data anak berhasil diunduh');
+        }
+
+        function printStudentReport() {
+            window.print();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+    </script>
+</body>
+</html>
